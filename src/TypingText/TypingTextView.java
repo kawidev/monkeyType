@@ -1,37 +1,51 @@
 package TypingText;
 
-import javafx.scene.text.TextFlow;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import util.Observer;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class TypingTextView implements Observer<List<String>> {
+public class TypingTextView implements Observer<List<TypingTextModel.CharacterWithStatus>> {
 
-    List<String> words;
     private TextFlow textFlow;
 
     public TypingTextView() {
-        this.words = new ArrayList<>();
         this.textFlow = new TextFlow();
     }
 
-    @Override
-    public void update(List<String> newWords) {
-        words = newWords;
-        // Aktualizuj interfejs użytkownika z nowymi słowami
-        displayWords();
+    public void update(List<TypingTextModel.CharacterWithStatus> characterWithStatuses) {
+        displayWords(characterWithStatuses);
     }
 
-    private void displayWords() {
-        textFlow.getChildren().clear(); // Wyczyść poprzedni tekst
-        for (String word : words) {
-            Text textWord = new Text(word + " ");
-            // Ustawienie stylów dla textWord jeśli to potrzebne
-            textFlow.getChildren().add(textWord);
+    // TypingTextView.java
+    public void displayWords(List<TypingTextModel.CharacterWithStatus> characterWithStatuses) {
+        textFlow.getChildren().clear();
+        for (TypingTextModel.CharacterWithStatus cws : characterWithStatuses) {
+            Text textNode = new Text(String.valueOf(cws.getCharacter())); // Display the actual character
+            textNode.setFill(getColorForStatus(cws.getStatus())); // Apply color based on the status
+            textFlow.getChildren().add(textNode);
         }
     }
+
+    private Color getColorForStatus(TypingTextModel.CharacterStatus status) { // Ensure this matches the enum location
+        switch (status) {
+            case CORRECT:
+                return Color.GREEN;
+            case INCORRECT:
+                return Color.RED;
+            case EXTRA:
+                return Color.ORANGE;
+            case MISSING:
+                return Color.BLACK;
+            case NOT_TYPED:
+                return Color.GRAY;
+            default:
+                return Color.BLACK; // Default color if none of the statuses match
+        }
+    }
+
 
     public TextFlow getTextFlow() {
         return textFlow;
