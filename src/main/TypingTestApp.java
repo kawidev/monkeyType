@@ -58,14 +58,28 @@ public class TypingTestApp extends Application {
         // Ustawienie layoutu i sceny
         VBox rootLayout = new VBox(20); // Dodaj spację między elementami
         rootLayout.setAlignment(Pos.CENTER); // Wyśrodkuj elementy w VBox
-        rootLayout.getChildren().addAll(languageMenuView.getLanguageComboBox(), timeViewComponent.getTimeComboBox(), typingTextView.getTextFlow());
-        Scene scene = new Scene(rootLayout, 800, 600);
+        rootLayout.setPadding(new Insets(10)); // Ustaw margines dla całego kontenera
 
-        // Ustawienie layoutu i sceny
+// Dodaj komponenty do layoutu
+        rootLayout.getChildren().addAll(
+                languageMenuView.getLanguageComboBox(),
+                timeViewComponent.getTimeComboBox(),
+                typingTextView.getTextFlow(), // Dodaj TextFlow do layoutu
+                typingTextView.getInputField() // Dodaj TextField do layoutu
+        );
+
+// Konfiguracja TextField
+        typingTextView.getInputField().setPrefWidth(800); // Ustaw preferowaną szerokość
+        typingTextView.getInputField().setMaxWidth(Region.USE_PREF_SIZE); // Ogranicz szerokość do preferowanej
+        VBox.setVgrow(typingTextView.getInputField(), Priority.ALWAYS); // Rozciągnij TextField, aby wypełnił dostępną przestrzeń w pionie
+
+// Ustawienie sceny
+        Scene scene = new Scene(rootLayout, 800, 600);
 
         primaryStage.setTitle("Typing Test Application");
         primaryStage.setScene(scene);
         primaryStage.show();
+
     }
 
     public static void main(String[] args) {

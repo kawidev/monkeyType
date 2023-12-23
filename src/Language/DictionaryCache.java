@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 public class DictionaryCache {
     private static final int WORDS_COUNT = 50;
-    private Map<String, List<String>> cache = new HashMap<>();
+    private final Map<String, List<String>> cache = new HashMap<>();
 
     public List<String> getWords(String language) {
         // Sprawdź, czy słownik dla danego języka jest w pamięci podręcznej

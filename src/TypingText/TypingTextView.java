@@ -1,33 +1,56 @@
 package TypingText;
 
+import javafx.application.Platform;
+import javafx.geometry.Pos;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import util.Observer;
 
-import java.util.List;
+import java.util.LinkedList;
 
-public class TypingTextView implements Observer<List<TypingTextModel.CharacterWithStatus>> {
+public class TypingTextView implements Observer<LinkedList<WordNode>> {
 
+    private VBox layout;
     private TextFlow textFlow;
+    private TextField typingArea;
 
     public TypingTextView() {
+        this.layout = new VBox(5);
         this.textFlow = new TextFlow();
+        this.typingArea = new TextField();
+
+        textFlow.setPrefSize(600, 100); // Adjust size as needed
+        typingArea.setPrefWidth(600); // Adjust width as needed
+
+        layout.setAlignment(Pos.CENTER);
+        layout.getChildren().add(textFlow);
+        layout.getChildren().add(typingArea);
+
+        Platform.runLater(() -> typingArea.requestFocus());
     }
 
-    public void update(List<TypingTextModel.CharacterWithStatus> characterWithStatuses) {
-        displayWords(characterWithStatuses);
+    @Override
+    public void update(LinkedList<WordNode> wordNodes) {
+        displayWords(wordNodes);
     }
 
-    // TypingTextView.java
-    public void displayWords(List<TypingTextModel.CharacterWithStatus> characterWithStatuses) {
-        textFlow.getChildren().clear();
-        for (TypingTextModel.CharacterWithStatus cws : characterWithStatuses) {
-            Text textNode = new Text(String.valueOf(cws.getCharacter())); // Display the actual character
-            textNode.setFill(getColorForStatus(cws.getStatus())); // Apply color based on the status
-            textFlow.getChildren().add(textNode);
-        }
+    public void displayWords(LinkedList<WordNode> wordNodes) {
+        Platform.runLater(() -> {
+            textFlow.getChildren().clear();
+            for (WordNode wordNode : wordNodes) {
+                for (CharacterNode charNode : wordNode.getCharacterNodes()) { // Zakładając metodę getCharacterNodes
+                    Text textNode = new Text(String.valueOf(charNode.getCharacter()));
+                    textNode.setFill(getColorForStatus(charNode.getStatus())); // Zakładając metodę getStatus
+                    textFlow.getChildren().add(textNode);
+                }
+                textFlow.getChildren().add(new Text(" ")); // Dodanie spacji między słowami
+            }
+        });
     }
+
 
     private Color getColorForStatus(TypingTextModel.CharacterStatus status) { // Ensure this matches the enum location
         switch (status) {
@@ -49,5 +72,13 @@ public class TypingTextView implements Observer<List<TypingTextModel.CharacterWi
 
     public TextFlow getTextFlow() {
         return textFlow;
+    }
+
+    public VBox getLayout() {
+        return layout;
+    }
+
+    public TextField getInputField() {
+        return typingArea;
     }
 }
