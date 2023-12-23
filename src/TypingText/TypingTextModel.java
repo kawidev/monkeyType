@@ -46,43 +46,54 @@ public class TypingTextModel extends Observable implements Observer<List<String>
     public void processInput(String newCharacter) {
         if (currentWordIndex >= 0) {
             WordNode currentWord = originalText.get(currentWordIndex);
+            List<CharacterNode> characterNodes = currentWord.getCharacterNodes();
 
-            if (currentCharIndex >= currentWord.getCharacterNodes().size()) {
-                // Check if the entered character is a space and there is a next word
-                if (newCharacter.equals(" ") && currentWordIndex < originalText.size() - 1) {
-                    // Proceed to the next word
+            if (newCharacter.equals(" ")) {
+                for (int i = currentCharIndex; i < currentWord.getCharacterNodes().size(); i++) {
+                    currentWord.getCharacterNodes().get(i).setStatus(TypingTextModel.CharacterStatus.MISSED);
+                }
+                if (currentWordIndex < originalText.size() - 1) {
                     currentWordIndex++;
                     currentCharIndex = 0;
-                } else {
-                    // Add a new CharacterNode with status EXTRA to the current word
-                    currentWord.addCharacter(newCharacter.charAt(0));
-                    currentCharIndex++; // Increment the index
                 }
             } else {
-                // Check if the entered character is correct
-                CharacterNode currentCharNode = currentWord.getCharacterNodes().get(currentCharIndex);
-                char expectedChar = currentCharNode.getCharacter();
-                if (newCharacter.charAt(0) == expectedChar) {
-                    currentCharNode.setStatus(TypingTextModel.CharacterStatus.CORRECT);
-                } else {
-                    currentCharNode.setStatus(TypingTextModel.CharacterStatus.INCORRECT);
-                }
-                currentCharIndex++;
-            }
+                if (currentCharIndex < characterNodes.size()) {
+                    CharacterNode currentCharNode = characterNodes.get(currentCharIndex);
+                    char inputChar = newCharacter.charAt(0);
+                    char expectedChar = currentCharNode.getCharacter();
 
+                    if (inputChar == expectedChar) {
+                        currentCharNode.setStatus(TypingTextModel.CharacterStatus.CORRECT);
+                        currentCharIndex++;
+                    } else {
+                        int foundIndex = -1;
+                        for (int offset = 1; offset <= 2; offset++) {
+                            if (currentCharIndex + offset < characterNodes.size() &&
+                                    characterNodes.get(currentCharIndex + offset).getCharacter() == inputChar) {
+                                foundIndex = currentCharIndex + offset;
+                                break;
+                            }
+                        }
+                        if (foundIndex != -1) {
+                            for (int j = currentCharIndex; j < foundIndex; j++) {
+                                characterNodes.get(j).setStatus(TypingTextModel.CharacterStatus.MISSED);
+                            }
+                            characterNodes.get(foundIndex).setStatus(TypingTextModel.CharacterStatus.CORRECT);
+                            currentCharIndex = foundIndex + 1;
+                        } else {
+                            currentCharNode.setStatus(TypingTextModel.CharacterStatus.INCORRECT);
+                            currentCharIndex++;
+                        }
+                    }
+                } else {
+                    currentWord.addCharacter(newCharacter.charAt(0));
+                    currentCharIndex++;
+                }
+            }
             notifyObserver();
         }
     }
-
-
-
-
-
-
-
-
-
     public enum CharacterStatus {
-        CORRECT, INCORRECT, EXTRA, MISSING, NOT_TYPED, SKIPPED;
+        CORRECT, INCORRECT, EXTRA, MISSING, NOT_TYPED, MISSED;
     }
 }
