@@ -8,17 +8,14 @@ import util.Observer;
 import java.util.List;
 
 public class LanguageMenuComponent implements Observer<List<String>> {
-    private ComboBox<String> languageComboBox = new ComboBox<>();
+    private final ComboBox<String> languageComboBox = new ComboBox<>();
 
     @Override
     public void update(List<String> languages) {
         languageComboBox.setItems(FXCollections.observableArrayList(languages));
     }
-
     public ComboBox<String> getLanguageComboBox() {
         return languageComboBox;
     }
-
-    // Inne metody widoku...
 }
 

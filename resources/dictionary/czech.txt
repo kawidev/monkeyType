@@ -3951,7 +3951,7 @@ jess
 thomas
 podaří
 zavřete
-model
+Game
 zraněný
 trhu
 strašný

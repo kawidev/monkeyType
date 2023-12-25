@@ -3810,7 +3810,7 @@ priateľky
 zdroje
 neďaleko
 komplikované
-model
+Game
 plno
 posily
 duchov

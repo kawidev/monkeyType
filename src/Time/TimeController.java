@@ -1,6 +1,6 @@
 package Time;
 
-import model.GameModel;
+import Game.GameModel;
 
 public class TimeController {
 

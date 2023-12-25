@@ -4416,7 +4416,7 @@ autobusi
 shënim
 zhgënjyer
 vetëvrasje
-model
+Game
 varr
 agjentët
 njihemi

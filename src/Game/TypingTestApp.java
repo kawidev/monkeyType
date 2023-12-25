@@ -1,4 +1,4 @@
-package main;
+package Game;
 
 import Language.LanguageController;
 import Language.LanguageMenuComponent;
@@ -8,22 +8,31 @@ import TypingText.TypingTextController;
 import TypingText.TypingTextModel;
 import TypingText.TypingTextView;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
-import model.GameModel;
+import Game.GameModel;
+import util.Observer;
 
-public class TypingTestApp extends Application {
+public class TypingTestApp extends Application implements Observer<Boolean> {
+
+    private Stage primaryStage;
+    private GameModel gameModel;
+
     @Override
     public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
         // Inicjalizacja modelu języka i gry
-        GameModel gameModel = new GameModel();
-
+        gameModel = new GameModel();
+        gameModel.registerObserver(this);
 
 
         // Inicjalizacja widoku menu językowego
@@ -76,10 +85,56 @@ public class TypingTestApp extends Application {
 // Ustawienie sceny
         Scene scene = new Scene(rootLayout, 800, 600);
 
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (!typingTextView.getInputField().isFocused()) {
+                typingTextView.getInputField().requestFocus();
+                event.consume(); // Consume the event if it's meant for typing
+            }
+        });
+
+        // You may also want to consume KeyTyped events if they are not for control keys
+        scene.addEventFilter(KeyEvent.KEY_TYPED, event -> {
+            if (!event.getCharacter().equals("\r") && // Check if it's not a control character (e.g., Enter)
+                    !event.getCharacter().equals("\b") && // Check if it's not a control character (e.g., Backspace)
+                    !typingTextView.getInputField().isFocused()) {
+                typingTextView.getInputField().requestFocus();
+                event.consume(); // Consume the event if it's meant for typing
+            }
+        });
+
         primaryStage.setTitle("Typing Test Application");
         primaryStage.setScene(scene);
         primaryStage.show();
 
+        // Ensure TextField is focused after the scene is shown
+        Platform.runLater(typingTextView.getInputField()::requestFocus);
+    }
+
+
+    @Override
+    public void update(Boolean isGameFinished) {
+        if(isGameFinished) {
+            showEndGameScene();
+        }
+    }
+
+    private void showEndGameScene() {
+        VBox endGameLayout = new VBox(20);
+        endGameLayout.setAlignment(Pos.CENTER);
+
+        Label endGameLabel = new Label("Gra zakończona!");
+        Label scoreLabel = new Label("Twój wynik: " + // Tutaj dodaj wynik z gameModel
+                "\nPoprawne znaki: " + gameModel.getTypingTextModel().getCorrectCharsCount() +
+                "\nNiepoprawne znaki: " + gameModel.getTypingTextModel().getIncorrectCharsCount() +
+                "\nDodatkowe znaki: " + gameModel.getTypingTextModel().getExtraCharsCount() +
+                "\nPominięte znaki: " + gameModel.getTypingTextModel().getMissedCharsCount() +
+                "\nWpisane slowa: " + gameModel.getTypingTextModel().getWordsCount() );
+
+        endGameLayout.getChildren().addAll(endGameLabel, scoreLabel);
+
+        Scene endGameScene = new Scene(endGameLayout, 800, 600);
+        primaryStage.setScene(endGameScene);
+        primaryStage.show();
     }
 
     public static void main(String[] args) {
