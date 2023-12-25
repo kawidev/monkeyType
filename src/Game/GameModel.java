@@ -11,7 +11,7 @@ import util.Observer;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GameModel extends Observable {
+public class GameModel extends Observable implements Observer<Integer> {
 
     private Boolean isGameStarted, playAgain, isGameFinish;
 
@@ -22,8 +22,6 @@ public class GameModel extends Observable {
     private long time;
     private Thread gameThread;
 
-
-
     DictionaryCache dictionaryCache;
 
     public GameModel() {
@@ -31,6 +29,7 @@ public class GameModel extends Observable {
         this.language = new LanguageModel();
         this.timeModel = new TimeModel();
         this.typingTextModel = new TypingTextModel();
+        typingTextModel.registerObserver(this);
 
         this.currentWords = new ArrayList<>();
         this.dictionaryCache = new DictionaryCache();
@@ -126,8 +125,14 @@ public class GameModel extends Observable {
 
     }
 
+    public void resetTypingModel() {
+        typingTextModel.reset();
+        notifyObserver();
+    }
+
 
     public void changeLanguage(String language) {
+        this.language.setLanguage(language);
         currentWords = dictionaryCache.getWords(language);
         System.out.println("Zmieniono jezyk na " + language);
 
@@ -161,5 +166,14 @@ public class GameModel extends Observable {
     public void setTimeLimit(Integer newVal) {
         this.time = newVal * 1000L;
         System.out.printf("czas ustawiony na: %d", time / 1000);
+    }
+
+    @Override
+    public void update(Integer wordsCount) {
+        if(wordsCount == 30 ) {
+            dictionaryCache.removeWordsFromCache(this.getCurrentLanguage());
+            currentWords = dictionaryCache.getWords(this.getCurrentLanguage());
+            resetTypingModel();
+        }
     }
 }

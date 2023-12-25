@@ -17,12 +17,9 @@ import javafx.util.Duration;
 import util.Observer;
 
 import java.util.LinkedList;
-import java.util.List;
 
 public class TypingTextView implements Observer<LinkedList<WordNode>> {
 
-
-    private TypingTextModel typingModel;
     private final TextFlow textFlow;
     private final TextField typingArea;
     private final Rectangle cursor;
@@ -49,9 +46,7 @@ public class TypingTextView implements Observer<LinkedList<WordNode>> {
 
         Platform.runLater(typingArea::requestFocus);
 
-        typingArea.textProperty().addListener((obs, oldText, newText) -> {
-            Platform.runLater(this::updateCursorPosition);
-        });
+        typingArea.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(this::updateCursorPosition));
 
         layout.setOnMouseClicked(event -> typingArea.requestFocus());
 
@@ -82,20 +77,14 @@ public class TypingTextView implements Observer<LinkedList<WordNode>> {
     }
 
     private Color getColorForStatus(TypingTextModel.CharacterStatus status) {
-        switch (status) {
-            case CORRECT:
-                return Color.GREEN;
-            case INCORRECT:
-                return Color.RED;
-            case EXTRA:
-                return Color.ORANGE;
-            case MISSING:
-                return Color.BLACK;
-            case NOT_TYPED:
-                return Color.GRAY;
-            default:
-                return Color.BLACK;
-        }
+        return switch (status) {
+            case CORRECT -> Color.GREEN;
+            case INCORRECT -> Color.RED;
+            case EXTRA -> Color.ORANGE;
+            case MISSING -> Color.BLACK;
+            case NOT_TYPED -> Color.GRAY;
+            default -> Color.BLACK;
+        };
     }
 
     public void animateText(Text textNode) {
@@ -137,8 +126,12 @@ public class TypingTextView implements Observer<LinkedList<WordNode>> {
 
         // Add the cursor at the new position
         textFlow.getChildren().add(cursorPosition, cursor);
-    }
 
+        // Animate the last updated character if it's not the cursor
+        if (cursorPosition > 0 && textFlow.getChildren().get(cursorPosition - 1) instanceof Text lastUpdatedChar) {
+            animateText(lastUpdatedChar);
+        }
+    }
 
     private int calculateCursorPositionBasedOnCaret() {
         int cursorPositionInTextFlow = 0;
@@ -165,12 +158,7 @@ public class TypingTextView implements Observer<LinkedList<WordNode>> {
         return cursorPositionInTextFlow;
     }
 
-
-
-    // Dummy method to represent getting the model instance. Replace with your actual implementation.
-
     public void setModel(TypingTextModel model) {
-        this.typingModel = model;
     }
 
     public Text findTextNode(String character) {

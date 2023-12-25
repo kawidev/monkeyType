@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class DictionaryCache {
-    private static final int WORDS_COUNT = 50;
+    private static final int WORDS_COUNT = 30;
     private final Map<String, List<String>> cache = new HashMap<>();
 
     public List<String> getWords(String language) {
@@ -31,7 +31,13 @@ public class DictionaryCache {
             cache.put(language, allWordsFromDict);
         }
         // Zwróć mutowalną kopię listy słów
-        return new ArrayList<>(cache.get(language).stream().limit(WORDS_COUNT).collect(Collectors.toList()));
+        return cache.get(language).stream().limit(WORDS_COUNT).collect(Collectors.toList());
     }
+
+    public void removeWordsFromCache(String language) {
+        cache.remove(language);
+    }
+
+
 
 }

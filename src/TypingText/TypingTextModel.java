@@ -1,5 +1,6 @@
 package TypingText;
 
+import Game.GameModel;
 import util.Observable;
 import util.Observer;
 
@@ -26,7 +27,8 @@ public class TypingTextModel extends Observable implements Observer<List<String>
     @Override
     protected void notifyObserver() {
         for (Observer observer : observers) {
-            observer.update(originalText);
+            if(observer instanceof TypingTextView) observer.update(originalText);
+            if(observer instanceof GameModel) observer.update(currentWordIndex);
         }
     }
 
@@ -65,7 +67,7 @@ public class TypingTextModel extends Observable implements Observer<List<String>
                     currentWord.addExtraCharacter(' '); // Space is not an extra character, so don't count it
                 }
 
-                if (currentWordIndex < originalText.size() - 1) {
+                if (currentWordIndex < originalText.size()) {
                     currentWordIndex++;
                     typedWordsCounter++;
                 }
@@ -135,6 +137,13 @@ public class TypingTextModel extends Observable implements Observer<List<String>
     public int getWordsCount() {
         return typedWordsCounter;
     }
+
+    public void reset() {
+        currentCharIndex = 0;
+        currentWordIndex = 0;
+
+    }
+
     public enum CharacterStatus {
         CORRECT, INCORRECT, EXTRA, MISSING, NOT_TYPED, MISSED;
     }

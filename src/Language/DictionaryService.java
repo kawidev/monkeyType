@@ -10,8 +10,6 @@ import java.util.stream.Collectors;
 
 public class DictionaryService {
 
-    private static final String DICTIONARY_PATH = "./dictionary";
-
     public List<String> getAvailableLanguages() {
         try {
             URL url = getClass().getClassLoader().getResource("dictionary");
@@ -21,6 +19,7 @@ public class DictionaryService {
             File dir = new File(url.toURI());
             File[] dictionaryFiles = dir.listFiles((d, name) -> name.endsWith(".txt"));
 
+            assert dictionaryFiles != null;
             return Arrays.stream(dictionaryFiles)
                     .map(file -> {
                         String nameWithoutExtension = file.getName().replace(".txt", "");
