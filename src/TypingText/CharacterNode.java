@@ -4,7 +4,7 @@ import TypingText.TypingTextModel.CharacterStatus;
 class CharacterNode {
     char character;
     CharacterStatus status;
-    CharacterNode next;
+    private CharacterNode next;
 
     public CharacterNode(char character) {
         this.character = character;
@@ -22,6 +22,10 @@ class CharacterNode {
 
     public void setStatus(CharacterStatus characterStatus) {
         this.status = characterStatus;
+    }
+
+    public boolean hasNext() {
+        return next != null;
     }
 
     // inne metody klasy...

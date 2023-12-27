@@ -66,7 +66,7 @@ public class GameController {
 
     public void finishGame() {
         // Logika kończenia gry, np. zatrzymywanie timerów, zapisywanie wyników
-        endGameView.updateScores(gameModel);
+        endGameView.updateChart();
         Platform.runLater(() -> {
             primaryStage.setScene(endGameView.getScene());
         });

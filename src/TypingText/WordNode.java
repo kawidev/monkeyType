@@ -1,5 +1,6 @@
 package TypingText;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -26,5 +27,20 @@ public class WordNode {
 
     public List<CharacterNode> getCharacterNodes() {
         return characterNodeLinkedList;
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        Iterator<CharacterNode> iterator = characterNodeLinkedList.iterator();
+
+        while(iterator.hasNext()) {
+            CharacterNode characterNode = iterator.next();
+            sb.append(characterNode.getCharacter());
+        }
+        if(iterator.hasNext()) {
+            sb.append(" ");
+        }
+
+        return sb.toString();
     }
 }

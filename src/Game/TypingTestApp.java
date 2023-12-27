@@ -22,7 +22,7 @@ import javafx.stage.Stage;
 import Game.GameModel;
 import util.Observer;
 
-public class TypingTestApp extends Application implements Observer<Boolean> {
+public class TypingTestApp extends Application {
 
     private Stage primaryStage;
     private GameModel gameModel;
@@ -32,7 +32,7 @@ public class TypingTestApp extends Application implements Observer<Boolean> {
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
         gameModel = new GameModel();
-        gameModel.registerObserver(this);
+        gameModel.setMain(this);
 
         GameView gameView = new GameView();
         EndGameView endGameView = new EndGameView(gameModel);
@@ -47,7 +47,6 @@ public class TypingTestApp extends Application implements Observer<Boolean> {
         primaryStage.show();
     }
 
-    @Override
     public void update(Boolean isGameFinished) {
         if(isGameFinished) {
             gameController.finishGame();

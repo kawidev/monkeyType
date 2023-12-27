@@ -10,12 +10,10 @@ import javafx.scene.text.Text;
 
 public class TypingTextController {
 
-    private GameModel gameModel;
-    private TypingTextModel textModel;
-    private TypingTextView textView;
+    private final TypingTextModel textModel;
+    private final TypingTextView textView;
 
     public TypingTextController(GameModel gameModel, TypingTextModel textModel, TypingTextView textView) {
-        this.gameModel = gameModel;
         this.textModel = textModel;
         this.textView = textView;
 
@@ -35,7 +33,7 @@ public class TypingTextController {
 
         inputField.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.BACK_SPACE) {
-                System.out.println("Backspace pressed"); // Debug print
+                //System.out.println("Backspace pressed"); // Debug print
                 textModel.processInput("");
                 textView.updateCursorPosition();
                 event.consume();
@@ -49,13 +47,13 @@ public class TypingTextController {
         inputField.addEventHandler(KeyEvent.KEY_TYPED, event -> {
             String character = event.getCharacter();
             if (!character.isEmpty() && !character.equals("\b") && !character.equals("\r")) {
-                System.out.println("Character typed: " + character); // Debug print
+                //System.out.println("Character typed: " + character); // Debug print
                 textModel.processInput(character);
                 Text correspondingTextNode = textView.findTextNode(character);
                 if (correspondingTextNode != null) {
                     textView.animateText(correspondingTextNode);
                 }
-                textView.updateCursorPosition(); // Update cursor position after typing
+                textView.updateCursorPosition();
                 event.consume();
             }
         });
