@@ -1,0 +1,62 @@
+.root {
+    -fx-font-family: 'Arial', sans-serif;
+    -fx-background-color: #2a2a2a;
+    -fx-base: #2a2a2a;
+    -fx-text-fill: white;
+}
+
+.label {
+    -fx-font-size: 14px;
+}
+
+.game-over-label {
+    -fx-font-size: 32px;
+    -fx-text-fill: linear-gradient(to right, #ff7e5f, #feb47b); /* Gradient kolorów dla tekstu */
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 20, 0, 0, 1); /* Cień dla tekstu */
+
+    /* Animacja pulsowania */
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+    -fx-animation: pulse 2s infinite;
+}
+
+.correctLabel {
+    -fx-font-weight: 900;
+    -fx-text-fill: green;
+}
+
+.incorrectLabel {
+    -fx-font-weight: 900;
+    -fx-text-fill: red;
+}
+.extrasLabel {
+    -fx-font-weight: 900;
+    -fx-text-fill: orange;
+}
+
+.missedLabel {
+    -fx-font-weight: 900;
+    -fx-text-fill: white;
+}
+
+.wpmLabel {
+    -fx-font-weight: 900;
+    -fx-text-fill: yellow;
+}
+
+.wpmResultLabel {
+    -fx-font-weight: 900;
+    -fx-text-fill: white;
+}
+
+.accuracyLabel {
+    -fx-font-weight: 900;
+    -fx-text-fill: yellow;
+}
+
+.accuracyResultLabel {
+    -fx-font-weight: 900;
+    -fx-font-size: 15px;
+    -fx-text-fill: white;
+}

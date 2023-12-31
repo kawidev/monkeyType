@@ -1,0 +1,62 @@
+.root {
+    -fx-background-color: #2B2B2B; /* Ciemne tło dla całej sceny */
+}
+
+.label {
+    -fx-font-size: 24px; /* Wielkość tekstu dla etykiet */
+    -fx-text-fill: white; /* Kolor tekstu */
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0, 0, 0);
+}
+
+.button, .combo-box {
+    -fx-background-color: #1E3A56; /* Granatowe tło dla przycisków i ComboBox */
+    -fx-text-fill: white; /* Biały tekst */
+    -fx-font-weight: bold; /* Pogrubiony tekst */
+    -fx-border-color: #1E3A56; /* Granatowa obwódka */
+    -fx-border-radius: 20; /* Zaokrąglenie rogów obwódki */
+    -fx-background-radius: 20; /* Zaokrąglenie rogów tła */
+}
+
+.combo-box, .list-cell {
+    -fx-text-fill: orange;
+}
+
+.language-combo-box {
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-padding: 3;
+    -fx-alignment: right;
+}
+
+.language-combo-box .list-cell {
+    -fx-text-fill: orange;
+}
+
+#languageComboBox .list-cell {
+    -fx-alignment: center;
+}
+
+
+.button:hover, .combo-box:hover {
+    -fx-background-color: derive(#1E3A56, -20%);
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.5), 15, 0.5, 0, 0);
+}
+
+.button:pressed, .combo-box:pressed {
+    -fx-background-color: derive(#1E3A56, 20%);
+}
+
+/* Animacja przy najeżdżaniu kursorem */
+.button:hover, .combo-box:hover {
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-transition: all 0.3s ease 0s;
+}
+
+/* Animacja przy oddaleniu kursorem */
+.button, .combo-box {
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+    -fx-transition: all 0.3s ease 0s;
+}

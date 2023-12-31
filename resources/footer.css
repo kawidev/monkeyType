@@ -1,0 +1,37 @@
+/* Style for the key labels (Tab, Enter) */
+.key-label {
+    -fx-background-color: white;    /* White background for the keys */
+    -fx-background-radius: 10;       /* Rounded corners */
+    -fx-border-color: black;         /* Black border */
+    -fx-border-width: 2;            /* Border width */
+    -fx-padding: 3 6;              /* Padding around the text */
+    -fx-text-fill: black;           /* Text color inside the key */
+    -fx-font-weight: bold;          /* Bold font weight */
+    -fx-alignment: center;          /* Center text alignment */
+}
+
+/* Style for the non-key text elements (+, - Restart Game) */
+.non-key-text {
+    -fx-fill: white;                /* White text color */
+    -fx-font-weight: bold;          /* Bold font weight */
+}
+
+/* Style for the footer background */
+.footer-background {
+    -fx-background-color: #333333;  /* Dark grey background */
+    -fx-padding: 10 0;              /* Padding for top and bottom */
+    -fx-alignment: center-left;     /* Align the children to the center left */
+}
+
+. time-counter {
+    -fx-background-color: red; /* Initial color */
+    -fx-background-radius: 50%; /* Makes the background a circle */
+    -fx-min-width: 100px; /* Minimum width */
+    -fx-min-height: 100px; /* Minimum height */
+    -fx-max-width: 100px; /* Maximum width */
+    -fx-max-height: 100px; /* Maximum height */
+    -fx-alignment: center; /* Center text */
+    -fx-text-fill: white; /* Text color */
+    -fx-font-size: 20px; /* Font size */
+    -fx-shape: "M50,0 a50,50 0 1,0 0,100 a50,50 0 1,0 0,-100"; /* Optional: Ensures a perfect circle */
+}

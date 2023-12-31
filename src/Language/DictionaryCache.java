@@ -12,12 +12,13 @@ public class DictionaryCache {
     private final Map<String, List<String>> cache = new HashMap<>();
 
     public List<String> getWords(String language) {
-        // Sprawdź, czy słownik dla danego języka jest w pamięci podręcznej
+        if(language == null) {
+            return new ArrayList<>();
+        }
+
         if (!cache.containsKey(language)) {
-            // Jeśli nie, wczytaj go i dodaj do cache
             List<String> allWordsFromDict;
             try {
-                // Użyj ClassLoadera do wczytania zasobów
                 InputStream is = getClass().getClassLoader().getResourceAsStream("dictionary/" + language.toLowerCase() + ".txt");
                 if (is == null) {
                     throw new IOException("Resource not found: " + "dictionary/" + language.toLowerCase() + ".txt");
@@ -30,7 +31,6 @@ public class DictionaryCache {
             Collections.shuffle(allWordsFromDict, new Random());
             cache.put(language, allWordsFromDict);
         }
-        // Zwróć mutowalną kopię listy słów
         return cache.get(language).stream().limit(WORDS_COUNT).collect(Collectors.toList());
     }
 

@@ -4,22 +4,26 @@ import Language.DictionaryCache;
 import Language.LanguageModel;
 import Time.TimeModel;
 import TypingText.TypingTextModel;
-import TypingText.TypingTextView;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import util.Observable;
 import util.Observer;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GameModel extends Observable implements Observer<Integer> {
 
 
+    private final Object pauseLock = new Object();
+    private long totalPauseDuration = 0;
+    private long pauseStartTime;
+
     private TypingTestApp typingTestApp;
-    private Boolean isGameStarted, playAgain, isGameFinish;
+
+    private GameView gameView;
+    private Boolean isGameStarted;
+    private Boolean playAgain;
+    private volatile boolean isGamePaused;
 
     private final LanguageModel language;
     private final TimeModel timeModel;
@@ -27,22 +31,25 @@ public class GameModel extends Observable implements Observer<Integer> {
     private List<String> currentWords;
     private long time;
     private volatile long gameStartTime;
+    private int leftTime;
 
     private Thread gameThread;
 
     DictionaryCache dictionaryCache;
     private final Map<Integer, Integer> wordsPerSecond = new HashMap<>();
     private final Map<Integer, Double> averageWpmPerSecond = new HashMap<>();
-    private final Map<String, Integer> wordAndWPM = new HashMap<>();
+    private final Map<String, Integer> wordAndWPM = new LinkedHashMap<>();
     private String lastTypedWord;
 
     private final SerializationClass serializationClass;
+
+    private boolean isLanguageChosen, isTimeChosen;
 
     public GameModel() {
 
         this.language = new LanguageModel();
         this.timeModel = new TimeModel();
-        this.typingTextModel = new TypingTextModel();
+        this.typingTextModel = new TypingTextModel(this);
         typingTextModel.registerObserver(this);
 
         this.currentWords = new ArrayList<>();
@@ -50,59 +57,137 @@ public class GameModel extends Observable implements Observer<Integer> {
 
         this.serializationClass = new SerializationClass(this);
 
+        this.time = 0;
+        this.isLanguageChosen = false;
+        this.isTimeChosen = false;
+
         this.isGameStarted = false;
-        this.isGameFinish = false;
+        this.isGamePaused = false;
         this.playAgain = true;
         this.lastTypedWord = null;
     }
 
     public void startGame() {
-        if (!isGameStarted && playAgain && time > 0) {
+        if (!isGameStarted && playAgain && isTimeChosen && isLanguageChosen) {
             isGameStarted = true;
             playAgain = false;
-            System.out.println("Gra rozpoczeta");
+            totalPauseDuration = 0;
+            gameStartTime = System.currentTimeMillis();
             currentWords = dictionaryCache.getWords(getCurrentLanguage());
             notifyObserver();
+            gameView.notifyAboutStartGameToShowTimeLabel();
 
-            this.gameStartTime = System.currentTimeMillis();
-
-            Task<Void> gameTask = new Task<>() {
-                @Override
-                protected Void call() throws Exception {
-                    long endTime = System.currentTimeMillis() + time;
-                    while (System.currentTimeMillis() < endTime) {
-                        Thread.sleep(1000); // czekaj sekundę
-                        long timeLeft = (endTime - System.currentTimeMillis()) / 1000;
-                        updateMessage("Pozostały czas: " + timeLeft + " sekund");
-                    }
-                    return null;
-                }
-
-                @Override
-                protected void succeeded() {
-                    super.succeeded();
-                    endGame();
-                }
-            };
-
-            // Uruchom zadanie w nowym wątku
-            gameThread = new Thread(gameTask);
-            gameThread.setDaemon(true); // Ustaw jako wątek demoniczny
-            gameThread.start();
-
-            // Ustaw właściwość message zadania do aktualizacji interfejsu użytkownika z pozostałym czasem
-            gameTask.messageProperty().addListener((obs, oldMessage, newMessage) -> {
-                // Aktualizuj UI tutaj za pomocą newMessage
-            });
-
-            System.out.println("Gra rozpoczęta. Masz " + (time / 1000) + " sekund.");
+            startCountdownTask(time);
         }
     }
+
+
+    public void pauseGame() {
+        if (!isGamePaused && isGameStarted) {
+            isGamePaused = true;
+            pauseStartTime = System.currentTimeMillis();
+            gameView.getTypingTextView().getInputField().setDisable(true);
+        }
+    }
+
+    public void resumeGame() {
+        if (isGamePaused && isGameStarted) {
+            totalPauseDuration += System.currentTimeMillis() - pauseStartTime;
+            isGamePaused = false;
+            gameView.getTypingTextView().getInputField().setDisable(false);
+            synchronized (pauseLock) {
+                pauseLock.notifyAll();
+            }
+        }
+    }
+
+    private void startCountdownTask(long totalTime) {
+        Task<Void> gameTask = new Task<>() {
+            @Override
+            protected Void call() {
+                while (!isCancelled()) {
+                    if (isGamePaused) {
+                        synchronized (pauseLock) {
+                            try {
+                                pauseLock.wait();
+                            } catch (InterruptedException e) {
+                                if (isCancelled()) {
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        long currentTime = System.currentTimeMillis();
+                        long timePassed = currentTime - gameStartTime - totalPauseDuration;
+                        leftTime = (int) ((totalTime - timePassed) / 1000);
+                        if (leftTime <= 0) {
+                            break;
+                        }
+                        updateMessage(String.valueOf(leftTime)); // Aktualizacja messageProperty
+                        try {
+                            Thread.sleep(1000); // Wait for one second
+                        } catch (InterruptedException e) {
+                            if (isCancelled()) {
+                                break;
+                            }
+                        }
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void succeeded() {
+                super.succeeded();
+                endGame();
+            }
+        };
+
+        gameTask.messageProperty().addListener((obs, oldMessage, newMessage) -> Platform.runLater(() -> gameView.updateTimeLeft(Integer.parseInt(newMessage))));
+
+        gameThread = new Thread(gameTask);
+        gameThread.setDaemon(true);
+        gameThread.start();
+    }
+
+    public void restartGameOrPlayAgain() {
+            isGameStarted = false;
+            isGamePaused = false;
+            playAgain = true;
+
+            // Reset language and time selections
+            isLanguageChosen = false;
+            isTimeChosen = false;
+
+            // Reset counters and indexes
+            totalPauseDuration = 0;
+            leftTime = 0;
+            gameStartTime = 0;
+            pauseStartTime = 0;
+
+            wordsPerSecond.clear();
+            wordAndWPM.clear();
+            averageWpmPerSecond.clear();
+
+            // Reset counters in TypingTextModel
+            typingTextModel.reset();
+
+            // Notify view to reset language and time selections in ComboBoxes
+            gameView.getLanguageMenuView().getLanguageComboBox().setValue(null);
+            gameView.getTimeViewComponent().getTimeComboBox().setValue(null);
+
+
+            if (gameThread != null && gameThread.isAlive()) {
+                gameThread.interrupt();
+                gameThread = null;
+            }
+            gameView.notifyAboutPlayAgainOrEndGame();
+            notifyObserver();
+        }
 
     public void endGame() {
         if (isGameStarted) {
             isGameStarted = false;
-            isGameFinish = true;
             if (gameThread != null) {
                 gameThread.interrupt();
                 gameThread = null;
@@ -112,13 +197,11 @@ public class GameModel extends Observable implements Observer<Integer> {
             printStatisticsTable();
 
             notifySceneClass();
-            // Zbierz statystyki
             int wordsWritten = typingTextModel.getWordsCount();
             int correctChars = typingTextModel.getCorrectCharsCount();
             int incorrectChars = typingTextModel.getIncorrectCharsCount();
             int extraChars = typingTextModel.getExtraCharsCount();
             int missedChars = typingTextModel.getMissedCharsCount();
-
 
 
             System.out.println("Gra zakończona.");
@@ -127,9 +210,6 @@ public class GameModel extends Observable implements Observer<Integer> {
             System.out.println("Niepoprawne znaki: " + incorrectChars);
             System.out.println("Dodatkowe znaki: " + extraChars);
             System.out.println("Pominiete znaki: " + missedChars);
-
-            // Tutaj możesz wywołać logikę, która pokaże wyniki użytkownikowi
-            // Może to być wywołanie metody z kontrolera, który aktualizuje widok.
         }
     }
 
@@ -141,7 +221,14 @@ public class GameModel extends Observable implements Observer<Integer> {
     protected void notifyObserver() {
         for(Observer observer : observers) {
             if(observer instanceof TypingTextModel) {
-                typingTextModel.update(currentWords);
+                if(isLanguageChosen)
+                    typingTextModel.update(currentWords);
+                else {
+                    String message = "To start a game you have to choose language and time and then press any KEY";
+                    List<String> messageWords = Arrays.asList(message.split(" "));
+                    typingTextModel.update(messageWords);
+                }
+
             }
         }
 
@@ -152,16 +239,10 @@ public class GameModel extends Observable implements Observer<Integer> {
         notifyObserver();
     }
 
-
     public void changeLanguage(String language) {
         this.language.setLanguage(language);
         currentWords = dictionaryCache.getWords(language);
         System.out.println("Zmieniono jezyk na " + language);
-
-
-        // skoro jezyk zostal zmieniony muszę zaimplementowac logikę związaną z informowaniem komponentów
-        // dotyczących pola do wprowadzania tekstu
-
         notifyObserver();
     }
 
@@ -186,45 +267,38 @@ public class GameModel extends Observable implements Observer<Integer> {
     }
 
     public void setTimeLimit(Integer newVal) {
+        if (newVal == null) {
+            return;
+        }
         this.time = newVal * 1000L;
         System.out.printf("czas ustawiony na: %d", time / 1000);
+        this.isTimeChosen = true;
     }
 
     @Override
     public synchronized void update(Integer wordsCount) {
         long currentTime = System.currentTimeMillis();
         long elapsedTime = currentTime - gameStartTime;
-        int second = (int) (elapsedTime / 1000);
+        int second = Math.max(1, (int) (elapsedTime / 1000));
 
-        if (second <= 0) {
-            // Avoid division by zero or negative seconds
-            System.err.println("Invalid second encountered: " + second);
-            return;
-        }
 
-        // Calculate the actual WPM for the last second
-        int actualWpm = (wordsCount * 60) / second;  // Assuming wordsCount is the number of words in the last second
+        int actualWpm = wordsCount * 60 / second;
 
-        // Update the last word's WPM if it's not 0
-        if(lastTypedWord != null && actualWpm != 0) {
+        if(lastTypedWord != null) {
             wordAndWPM.put(lastTypedWord, actualWpm);
+            System.out.printf("Dodano slowo: %s\n", lastTypedWord);
         }
+        lastTypedWord = null;
 
-        // Update words per second map
         if (second <= time / 1000) {
             wordsPerSecond.put(second, actualWpm);
 
-            // Calculate the total WPM up to the current second
             int totalWpm = wordsPerSecond.values().stream().mapToInt(Integer::intValue).sum();
 
-            // Calculate the average WPM up to the current second
-            double averageWpm = (double) totalWpm / second; // Divide by the number of seconds, not the size of the map
+            double averageWpm = (double) totalWpm / second;
             averageWpmPerSecond.put(second, averageWpm);
-        } else {
-            System.err.println("Invalid second encountered: " + second);
         }
 
-        // Reset the typing model if needed
         if(wordsCount == 30) {
             dictionaryCache.removeWordsFromCache(this.getCurrentLanguage());
             currentWords = dictionaryCache.getWords(this.getCurrentLanguage());
@@ -261,9 +335,38 @@ public class GameModel extends Observable implements Observer<Integer> {
 
     public void updateLastTypedWord(String lastTypedWord) {
         this.lastTypedWord = lastTypedWord;
+        System.out.printf("UpdateLastTypedWord: %s\n", lastTypedWord);
     }
 
     public void setMain(TypingTestApp typingTestApp) {
         this.typingTestApp = typingTestApp;
+    }
+
+    public boolean isGameStarted() {
+        return isGameStarted;
+    }
+
+    public boolean isTimeChosen() {
+        return isTimeChosen;
+    }
+
+    public boolean isLanguageChosen() {
+        return isLanguageChosen;
+    }
+
+    public void setLanguageChosen(boolean state) {
+        isLanguageChosen = state;
+    }
+
+    public boolean isGamePaused() {
+        return isGamePaused;
+    }
+
+    public void setGameView(GameView gameView) {
+        this.gameView = gameView;
+    }
+
+    public long getTime() {
+        return time;
     }
 }

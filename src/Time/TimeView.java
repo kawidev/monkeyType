@@ -6,7 +6,17 @@ import util.Observer;
 import java.util.List;
 
 public class TimeView implements Observer<List<Integer>> {
-    private ComboBox<Integer> timeComboBox = new ComboBox<>();
+    private final ComboBox<Integer> timeComboBox;
+
+    public TimeView() {
+        this.timeComboBox = new ComboBox<>();
+        timeComboBox.setPromptText("Select time");
+        timeComboBox.setStyle("""
+                -fx-background-radius: 20;
+                    -fx-border-radius: 20;
+                    -fx-padding: 3;
+                    -fx-alignment: right;""");
+    }
 
     public ComboBox<Integer> getTimeComboBox() {
         return timeComboBox;
@@ -16,6 +26,4 @@ public class TimeView implements Observer<List<Integer>> {
     public void update(List<Integer> timeList) {
         timeComboBox.setItems(FXCollections.observableArrayList(timeList));
     }
-
-    // ... metody do inicjalizacji ComboBox z opcjami czasu
 }

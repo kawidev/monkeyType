@@ -1,0 +1,16 @@
+.time-combo-box {
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-padding: 3;
+    -fx-alignment: right;
+}
+
+
+
+.time-combo-box .list-cell {
+    -fx-text-fill: orange;
+}
+
+#timeComboBox .list-cell {
+    -fx-alignment: center;
+}

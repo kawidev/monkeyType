@@ -12,6 +12,11 @@ class CharacterNode {
         this.next = null;
     }
 
+    public CharacterNode(char character, CharacterStatus status) {
+        this.character = character;
+        this.status = status;
+    }
+
     public char getCharacter() {
         return character;
     }
@@ -23,10 +28,4 @@ class CharacterNode {
     public void setStatus(CharacterStatus characterStatus) {
         this.status = characterStatus;
     }
-
-    public boolean hasNext() {
-        return next != null;
-    }
-
-    // inne metody klasy...
 }

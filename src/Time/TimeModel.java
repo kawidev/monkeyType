@@ -33,7 +33,6 @@ public class TimeModel {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            // Handle the exception, possibly logging it and providing a fallback
         }
     }
 

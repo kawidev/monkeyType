@@ -2,13 +2,17 @@ package Language;
 
 import javafx.collections.FXCollections;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.MenuBar;
 import util.Observer;
-
 import java.util.List;
 
 public class LanguageMenuComponent implements Observer<List<String>> {
-    private final ComboBox<String> languageComboBox = new ComboBox<>();
+    private final ComboBox<String> languageComboBox;
+
+    public LanguageMenuComponent() {
+        languageComboBox = new ComboBox<>();
+        languageComboBox.setPromptText("Select language");
+        languageComboBox.getStyleClass().add("language-combo-box");
+    }
 
     @Override
     public void update(List<String> languages) {
@@ -18,4 +22,3 @@ public class LanguageMenuComponent implements Observer<List<String>> {
         return languageComboBox;
     }
 }
-

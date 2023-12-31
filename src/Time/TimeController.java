@@ -4,8 +4,8 @@ import Game.GameModel;
 
 public class TimeController {
 
-    private GameModel gameModel;
-    private TimeView timeView;
+    private final GameModel gameModel;
+    private final TimeView timeView;
 
     public TimeController(GameModel gameModel, TimeView timeView) {
         this.gameModel = gameModel;
@@ -16,7 +16,8 @@ public class TimeController {
 
     private void setupViewListeners() {
         timeView.getTimeComboBox().valueProperty().addListener((obs, oldVal, newVal) -> {
-            gameModel.setTimeLimit(newVal); // Przekazanie wybranego czasu do GameModel
+            gameModel.setTimeLimit(newVal);
+            gameModel.getTypingTextModel().processInput("");
         });
     }
 

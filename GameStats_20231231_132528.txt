@@ -1,0 +1,5 @@
+jadalna -> 60wpm
+niebieskawych -> 40wpm
+zwarłyście -> 30wpm
+usuwałyśmypowr -> 26wpm
+powracałybyście -> 25wpm

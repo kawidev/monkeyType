@@ -1,0 +1,7 @@
+zapewniano -> 30wpm
+skazanych -> 40wpm
+niekradzeń -> 36wpm
+pogrzebało -> 34wpm
+wnioskowani -> 37wpm
+zestawieniem -> 40wpm
+wykorzystałabyy -> 35wpm

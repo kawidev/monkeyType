@@ -3,18 +3,23 @@ package TypingText;
 import Game.GameModel;
 import util.Observable;
 import util.Observer;
-
 import java.util.LinkedList;
 import java.util.List;
 
 public class TypingTextModel extends Observable implements Observer<List<String>> {
 
-    private LinkedList<WordNode> originalText;
+    private final LinkedList<WordNode> originalText;
     private int currentWordIndex, currentCharIndex;
+
+    private String lastTypedWord;
 
     private int correctCharsCounter, incorrectCharsCounter, extraCharsCounter, missedCharsCounter, typedWordsCounter;
 
-    public TypingTextModel() {
+    private final GameModel gameModel;
+
+    public TypingTextModel(GameModel gameModel) {
+
+        this.gameModel = gameModel;
         this.originalText = new LinkedList<>();
         this.correctCharsCounter = 0;
         this.incorrectCharsCounter = 0;
@@ -28,7 +33,11 @@ public class TypingTextModel extends Observable implements Observer<List<String>
     protected void notifyObserver() {
         for (Observer observer : observers) {
             if(observer instanceof TypingTextView) observer.update(originalText);
-            if(observer instanceof GameModel) observer.update(currentWordIndex);
+            if(observer instanceof GameModel) {
+                observer.update(currentWordIndex);
+                ((GameModel) observer).updateLastTypedWord(lastTypedWord);
+                lastTypedWord = null;
+            }
         }
     }
 
@@ -36,6 +45,7 @@ public class TypingTextModel extends Observable implements Observer<List<String>
     @Override
     public void update(List<String> newWords) {
         this.originalText.clear();
+
 
         currentWordIndex = 0;
         currentCharIndex = 0;
@@ -51,71 +61,75 @@ public class TypingTextModel extends Observable implements Observer<List<String>
     }
 
     public void processInput(String newCharacter) {
-        if (currentWordIndex >= 0 && newCharacter != null && !newCharacter.isEmpty()) {
-            WordNode currentWord = originalText.get(currentWordIndex);
-            List<CharacterNode> characterNodes = currentWord.getCharacterNodes();
 
-            if (newCharacter.equals(" ")) {
-                for (int i = currentCharIndex; i < characterNodes.size(); i++) {
-                    if (characterNodes.get(i).getStatus() == TypingTextModel.CharacterStatus.NOT_TYPED) {
-                        characterNodes.get(i).setStatus(TypingTextModel.CharacterStatus.MISSED);
-                        missedCharsCounter++;
-                    }
-                }
+        if(gameModel.isTimeChosen() && gameModel.isLanguageChosen()) {
+            gameModel.startGame();
+            if (currentWordIndex >= 0 && newCharacter != null && !newCharacter.isEmpty()) {
+                WordNode currentWord = originalText.get(currentWordIndex);
+                List<CharacterNode> characterNodes = currentWord.getCharacterNodes();
 
-                for (int i = characterNodes.size(); i < currentCharIndex; i++) {
-                    currentWord.addExtraCharacter(' '); // Space is not an extra character, so don't count it
-                }
-
-                if (currentWordIndex < originalText.size()) {
-                    currentWordIndex++;
-                    typedWordsCounter++;
-                }
-                currentCharIndex = 0;
-            } else {
-                if (currentCharIndex < characterNodes.size()) {
-                    CharacterNode currentCharNode = characterNodes.get(currentCharIndex);
-                    char inputChar = newCharacter.charAt(0);
-                    char expectedChar = currentCharNode.getCharacter();
-
-                    if (inputChar == expectedChar) {
-                        currentCharNode.setStatus(TypingTextModel.CharacterStatus.CORRECT);
-                        correctCharsCounter++;
-                    } else {
-                        int foundIndex = -1;
-                        for (int offset = 1; offset <= 2; offset++) {
-                            if (currentCharIndex + offset < characterNodes.size() &&
-                                    characterNodes.get(currentCharIndex + offset).getCharacter() == inputChar) {
-                                foundIndex = currentCharIndex + offset;
-                                break;
-                            }
+                if (newCharacter.equals(" ")) {
+                    for (int i = currentCharIndex; i < characterNodes.size(); i++) {
+                        if (characterNodes.get(i).getStatus() == TypingTextModel.CharacterStatus.NOT_TYPED) {
+                            characterNodes.get(i).setStatus(TypingTextModel.CharacterStatus.MISSED);
+                            missedCharsCounter++;
                         }
+                    }
 
-                        if (foundIndex != -1) {
-                            missedCharsCounter += (foundIndex - currentCharIndex);
-                            for (int j = currentCharIndex; j < foundIndex; j++) {
-                                characterNodes.get(j).setStatus(TypingTextModel.CharacterStatus.MISSED);
-                            }
-                            characterNodes.get(foundIndex).setStatus(TypingTextModel.CharacterStatus.CORRECT);
-                            // Set currentCharIndex to foundIndex, as it will be incremented after exiting this block
-                            currentCharIndex = foundIndex;
+                    for (int i = characterNodes.size(); i < currentCharIndex; i++) {
+                        currentWord.addExtraCharacter(' ');
+                    }
+
+                    if (currentWordIndex < originalText.size()) {
+                        lastTypedWord = originalText.get(currentWordIndex).toString();
+                        System.out.println(lastTypedWord);
+                        currentWordIndex++;
+                        typedWordsCounter++;
+                        notifyObserver();
+                    }
+                    currentCharIndex = 0;
+                } else {
+                    if (currentCharIndex < characterNodes.size()) {
+                        CharacterNode currentCharNode = characterNodes.get(currentCharIndex);
+                        char inputChar = newCharacter.charAt(0);
+                        char expectedChar = currentCharNode.getCharacter();
+
+                        if (inputChar == expectedChar) {
+                            currentCharNode.setStatus(TypingTextModel.CharacterStatus.CORRECT);
                             correctCharsCounter++;
                         } else {
-                            currentCharNode.setStatus(TypingTextModel.CharacterStatus.INCORRECT);
-                            incorrectCharsCounter++;
+                            int foundIndex = -1;
+                            for (int offset = 1; offset <= 2; offset++) {
+                                if (currentCharIndex + offset < characterNodes.size() &&
+                                        characterNodes.get(currentCharIndex + offset).getCharacter() == inputChar) {
+                                    foundIndex = currentCharIndex + offset;
+                                    break;
+                                }
+                            }
+                            if (foundIndex != -1) {
+                                missedCharsCounter += (foundIndex - currentCharIndex);
+                                for (int j = currentCharIndex; j < foundIndex; j++) {
+                                    characterNodes.get(j).setStatus(TypingTextModel.CharacterStatus.MISSED);
+                                }
+                                characterNodes.get(foundIndex).setStatus(TypingTextModel.CharacterStatus.CORRECT);
+
+                                currentCharIndex = foundIndex;
+                                correctCharsCounter++;
+                            } else {
+                                currentCharNode.setStatus(TypingTextModel.CharacterStatus.INCORRECT);
+                                incorrectCharsCounter++;
+                            }
                         }
+                    } else {
+                        currentWord.addExtraCharacter(newCharacter.charAt(0));
+                        extraCharsCounter++;
                     }
-                } else {
-                    currentWord.addExtraCharacter(newCharacter.charAt(0));
-                    extraCharsCounter++;
+                    currentCharIndex++;
                 }
-                currentCharIndex++;
+                notifyObserver();
             }
-            notifyObserver();
         }
     }
-
-
 
     // Gettery dla statystyk
     public int getCorrectCharsCount() {
@@ -141,10 +155,9 @@ public class TypingTextModel extends Observable implements Observer<List<String>
     public void reset() {
         currentCharIndex = 0;
         currentWordIndex = 0;
-
     }
 
     public enum CharacterStatus {
-        CORRECT, INCORRECT, EXTRA, MISSING, NOT_TYPED, MISSED;
+        CORRECT, INCORRECT, EXTRA, MISSING, NOT_TYPED, MISSED
     }
 }

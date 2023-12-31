@@ -1,7 +1,5 @@
 package TypingText;
 
-import javafx.beans.Observable;
-import javafx.scene.Node;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import Game.GameModel;
@@ -19,7 +17,7 @@ public class TypingTextController {
 
         gameModel.registerObserver(textModel);
         textModel.registerObserver(textView);
-        textView.setModel(textModel);
+        textView.setModel();
 
         setupTypingListener();
     }
@@ -27,9 +25,7 @@ public class TypingTextController {
         TextField inputField = textView.getInputField();
 
         // Update cursor position whenever the text changes.
-        inputField.textProperty().addListener((obs, oldText, newText) -> {
-            textView.updateCursorPosition();
-        });
+        inputField.textProperty().addListener((obs, oldText, newText) -> textView.updateCursorPosition());
 
         inputField.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.BACK_SPACE) {

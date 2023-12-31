@@ -4,13 +4,12 @@ import Game.GameModel;
 
 public class LanguageController {
 
-    private GameModel gameModel;
-    private LanguageModel languageModel;
-    private LanguageMenuComponent languageMenuComponent;
+    private final GameModel gameModel;
+    private final LanguageMenuComponent languageMenuComponent;
 
     public LanguageController(GameModel gameModel, LanguageMenuComponent languageMenuComponent) {
         this.gameModel = gameModel;
-        this.languageModel = gameModel.getLanguageModel();
+        LanguageModel languageModel = gameModel.getLanguageModel();
         this.languageMenuComponent = languageMenuComponent;
 
         languageModel.registerObserver(languageMenuComponent);
@@ -19,10 +18,9 @@ public class LanguageController {
 
     private void setupViewListeners() {
         languageMenuComponent.getLanguageComboBox().valueProperty().addListener((obs, oldVal, newVal) -> {
-            // Logika reagująca na zmianę wybranego języka
-            // Może obejmować informowanie modelu gry o zmianie języka
-
             gameModel.changeLanguage(newVal);
+            gameModel.setLanguageChosen(true);
+            gameModel.getTypingTextModel().processInput("");
         });
     }
 }
